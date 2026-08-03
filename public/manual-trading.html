@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Manual Trading | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in"><div class="page-title">Manual Trading</div><div class="page-sub">Place orders on any connected account</div></div>
+
+  <div class="grid-2 animate-in mb-16">
+    <div class="card">
+      <div class="fw-700 mb-16">New Order</div>
+      <div id="order-alert"></div>
+      <form id="order-form">
+        <div class="field"><label>Account</label><select name="accountId" id="acc-sel" required></select></div>
+        <div class="field"><label>Symbol</label><input type="text" name="symbol" placeholder="BTCUSDT" required style="text-transform:uppercase;"/></div>
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Side</label>
+            <select name="side" required>
+              <option value="BUY">Buy / Long</option>
+              <option value="SELL">Sell / Short</option>
+            </select>
+          </div>
+          <div class="field"><label>Type</label>
+            <select name="type" id="type-sel" required>
+              <option value="MARKET">Market</option>
+              <option value="LIMIT">Limit</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Quantity</label><input type="number" step="any" name="quantity" required placeholder="0.001"/></div>
+          <div class="field" id="price-field" style="display:none;"><label>Limit Price</label><input type="number" step="any" name="price" placeholder="0.00"/></div>
+        </div>
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Stop Loss <span class="text-3" style="font-weight:400;text-transform:none;">(opt)</span></label><input type="number" step="any" name="stopLoss" placeholder="0.00"/></div>
+          <div class="field"><label>Take Profit <span class="text-3" style="font-weight:400;text-transform:none;">(opt)</span></label><input type="number" step="any" name="takeProfit" placeholder="0.00"/></div>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" id="order-btn">Place Order</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="fw-700 mb-16">Open Positions</div>
+      <div id="pos-list"><div class="empty-state">No open positions.</div></div>
+    </div>
+  </div>
+
+  <div class="card animate-in">
+    <div class="fw-700 mb-16">Recent Orders</div>
+    <div class="table-wrap" id="orders-tbl"><div class="empty-state">No orders yet.</div></div>
+  </div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+document.getElementById('type-sel').onchange=e=>{
+  document.getElementById('price-field').style.display=e.target.value==='LIMIT'?'block':'none';
+};
+async function loadAccounts(){
+  const {accounts}=await Api.get('/api/binance/accounts');
+  const sel=document.getElementById('acc-sel');
+  sel.innerHTML=accounts.length
+    ?accounts.map(a=>`<option value="${a.id}">${a.label} (${a.account_type.replace('_',' ')})</option>`).join('')
+    :'<option value="">No accounts connected</option>';
+}
+async function loadPositions(){
+  const {positions}=await Api.get('/api/trading/positions');
+  const list=document.getElementById('pos-list');
+  list.innerHTML=positions.length?positions.map(p=>`
+    <div class="flex justify-between items-center" style="padding:12px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <span class="fw-600">${p.symbol}</span>
+        ${p.side==='long'?'<span class="badge badge-green" style="margin-left:6px;">LONG</span>':'<span class="badge badge-red" style="margin-left:6px;">SHORT</span>'}
+        <div class="text-xs text-3 mt-4">Entry: ${p.entry_price??'—'} · Qty: ${p.quantity??'—'}</div>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="closePos(${p.id})">Close</button>
+    </div>`).join(''):'<div class="empty-state">No open positions.</div>';
+}
+async function loadOrders(){
+  const {orders}=await Api.get('/api/trading/orders');
+  const tbl=document.getElementById('orders-tbl');
+  tbl.innerHTML=orders.length?`<table><thead><tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th><th>Source</th><th>Status</th></tr></thead><tbody>
+    ${orders.slice(0,20).map(o=>`<tr>
+      <td class="fw-600">${o.symbol}</td><td>${o.side}</td><td>${o.type}</td><td>${o.quantity}</td>
+      <td><span class="badge ${o.source==='auto'?'badge-blue':'badge-gray'}">${o.source}</span></td>
+      <td><span class="badge badge-gray">${o.status}</span></td>
+    </tr>`).join('')}
+  </tbody></table>`:'<div class="empty-state">No orders yet.</div>';
+}
+async function closePos(id){
+  if(!confirm('Close this position at market?')) return;
+  try{ await Api.post('/api/trading/manual/close/'+id); loadPositions(); }catch(e){ alert(e.message); }
+}
+document.getElementById('order-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=document.getElementById('order-btn');
+  const box=document.getElementById('order-alert');
+  box.innerHTML=''; btn.disabled=true; btn.textContent='Placing…';
+  const f=new FormData(e.target);
+  if(!f.get('accountId')){ box.innerHTML='<div class="alert alert-error">Connect a Binance account first.</div>'; btn.disabled=false; btn.textContent='Place Order'; return; }
+  try{
+    await Api.post('/api/trading/manual/order',{
+      accountId:f.get('accountId'),symbol:f.get('symbol').toUpperCase(),
+      side:f.get('side'),type:f.get('type'),quantity:f.get('quantity'),
+      price:f.get('price')||undefined,stopLoss:f.get('stopLoss')||undefined,takeProfit:f.get('takeProfit')||undefined,
+    });
+    box.innerHTML='<div class="alert alert-success">Order placed.</div>';
+    e.target.reset(); loadPositions(); loadOrders();
+  }catch(err){ box.innerHTML=`<div class="alert alert-error">${err.message}</div>`; }
+  finally{ btn.disabled=false; btn.textContent='Place Order'; }
+});
+loadAccounts(); loadPositions(); loadOrders();
+setInterval(()=>{ loadPositions(); loadOrders(); },15000);
+</script>
+</body></html>

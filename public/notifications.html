@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Notifications | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in flex justify-between items-center">
+    <div><div class="page-title">Notifications</div><div class="page-sub">Trade alerts and system messages</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="markAll()">Mark all read</button>
+  </div>
+  <div class="card animate-in"><div id="notif-list"><div class="empty-state">No notifications.</div></div></div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+async function load(){
+  const {notifications}=await Api.get('/api/notifications');
+  document.getElementById('notif-list').innerHTML=notifications.length?notifications.map(n=>`
+    <div class="flex justify-between items-start" style="padding:14px 0;border-bottom:1px solid var(--border);${n.is_read?'opacity:.55':''}">
+      <div style="flex:1;min-width:0;">
+        <div class="fw-600 text-sm">${n.title}</div>
+        <div class="text-2 text-xs mt-4" style="line-height:1.6;">${n.message}</div>
+        <div class="text-3 text-xs mt-8">${new Date(n.created_at*1000).toLocaleString()}</div>
+      </div>
+      <span class="badge badge-gray" style="margin-left:12px;flex-shrink:0;">${n.type}</span>
+    </div>`).join(''):'<div class="empty-state">No notifications.</div>';
+}
+async function markAll(){ await Api.post('/api/notifications/read-all'); load(); }
+load(); setInterval(load,15000);
+</script>
+</body></html>

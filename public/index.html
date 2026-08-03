@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Trader | Binance AI Trading Platform</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<nav class="public-nav">
+  <div class="public-logo">
+    <div class="logo-icon" style="width:28px;height:28px;border-radius:7px;background:var(--yellow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="#1a1200"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Trader
+  </div>
+  <div class="public-nav-links">
+    <a href="/login.html" class="btn btn-ghost btn-sm">Log In</a>
+    <a href="/register.html" class="btn btn-primary btn-sm">Get Started</a>
+  </div>
+</nav>
+
+<div class="hero animate-in">
+  <div class="hero-badge">
+    <span class="dot dot-green pulse"></span> Live on Binance Spot &amp; Futures
+  </div>
+  <h1>Trade Smarter<br/>with AI-Powered Analysis</h1>
+  <p>Connect your Binance account. The AI engine scans 7 timeframes using EMA, RSI, MACD, ATR, ADX, VWAP, Bollinger Bands, and Smart Money Concepts — and only trades when all conditions align.</p>
+  <div class="hero-btns">
+    <a href="/register.html" class="btn btn-primary btn-lg">Create Free Account</a>
+    <a href="/login.html" class="btn btn-ghost btn-lg">Sign In</a>
+  </div>
+</div>
+
+<!-- Ticker strip -->
+<div class="ticker-strip" id="ticker-strip">
+  <div class="ticker-item"><div class="ticker-sym">BTC/USDT</div><div class="ticker-price">—</div><div class="ticker-chg text-2">—</div></div>
+  <div class="ticker-item"><div class="ticker-sym">ETH/USDT</div><div class="ticker-price">—</div><div class="ticker-chg text-2">—</div></div>
+  <div class="ticker-item"><div class="ticker-sym">BNB/USDT</div><div class="ticker-price">—</div><div class="ticker-chg text-2">—</div></div>
+  <div class="ticker-item"><div class="ticker-sym">SOL/USDT</div><div class="ticker-price">—</div><div class="ticker-chg text-2">—</div></div>
+  <div class="ticker-item"><div class="ticker-sym">XRP/USDT</div><div class="ticker-price">—</div><div class="ticker-chg text-2">—</div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Everything you need to trade with an edge</div>
+  <div class="section-sub">Professional tools. Automated execution. Real Binance integration.</div>
+  <div class="feature-grid">
+    <div class="card animate-in">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg></div>
+      <div class="fw-700 mb-12">24/7 AI Auto-Trading</div>
+      <p class="text-2 text-sm" style="line-height:1.7">Continuously scans symbols across 1m–4h timeframes. Fires only when trend, momentum, volume, and structure all confirm simultaneously.</p>
+    </div>
+    <div class="card animate-in">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div class="fw-700 mb-12">4 Account Modes</div>
+      <p class="text-2 text-sm" style="line-height:1.7">Spot Testnet, Spot Real, Futures Testnet, Futures Real. Start risk-free on Testnet. API keys encrypted with AES-256-GCM at rest.</p>
+    </div>
+    <div class="card animate-in">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 3 3 5-6"/></svg></div>
+      <div class="fw-700 mb-12">Live Account Sync</div>
+      <p class="text-2 text-sm" style="line-height:1.7">Balance, margin, unrealized PNL, open positions, and orders stream live via WebSocket the moment your account connects.</p>
+    </div>
+    <div class="card animate-in">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1" fill="currentColor"/></svg></div>
+      <div class="fw-700 mb-12">Manual Terminal</div>
+      <p class="text-2 text-sm" style="line-height:1.7">Place market or limit orders with stop-loss and take-profit directly from the platform. Full control when you want it.</p>
+    </div>
+    <div class="card animate-in">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M12 9v12"/></svg></div>
+      <div class="fw-700 mb-12">Referral Program</div>
+      <p class="text-2 text-sm" style="line-height:1.7">Unique referral code for every account. Dashboard shows earnings, active referrals, and a public leaderboard.</p>
+    </div>
+    <div class="card animate-in">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <div class="fw-700 mb-12">Risk Management</div>
+      <p class="text-2 text-sm" style="line-height:1.7">Configurable max risk per trade, trailing stop, break-even trigger, and max open positions. Never over-expose the account.</p>
+    </div>
+  </div>
+</div>
+
+<div style="padding:0 16px 60px;max-width:700px;margin:0 auto;text-align:center;">
+  <div class="card">
+    <div class="fw-700" style="font-size:18px;margin-bottom:10px;">Ready to connect your Binance account?</div>
+    <p class="text-2 text-sm" style="margin-bottom:20px;">Start on Testnet — no real funds required — then go live when you're comfortable.</p>
+    <a href="/register.html" class="btn btn-primary btn-lg">Create Your Free Account</a>
+  </div>
+</div>
+
+<div class="public-footer">
+  Trading cryptocurrency involves substantial risk of loss. This platform is not financial advice.
+  &copy; <span id="yr"></span> AI Trader &nbsp;·&nbsp;
+  <a href="/admin-login.html" class="text-3">Admin</a>
+</div>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+// Try to populate ticker from public API
+fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT"]')
+  .then(r=>r.json()).then(data=>{
+    const strip = document.getElementById('ticker-strip');
+    if(!data||!data.length) return;
+    data.forEach((t,i)=>{
+      const item = strip.children[i];
+      if(!item) return;
+      const chg = parseFloat(t.priceChangePercent);
+      item.querySelector('.ticker-price').textContent = '$'+parseFloat(t.lastPrice).toLocaleString(undefined,{maximumFractionDigits:4});
+      const chgEl = item.querySelector('.ticker-chg');
+      chgEl.textContent = (chg>=0?'+':'')+chg.toFixed(2)+'%';
+      chgEl.className = 'ticker-chg '+(chg>=0?'pos':'neg');
+    });
+  }).catch(()=>{});
+</script>
+</body>
+</html>

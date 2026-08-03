@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Auto Trading | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in"><div class="page-title">Auto Trading</div><div class="page-sub">AI executes only when all thresholds are met</div></div>
+
+  <div class="stat-grid animate-in mb-16">
+    <div class="stat-card"><div class="stat-label">Min Confidence</div><div class="stat-value accent" id="min-conf">—</div></div>
+    <div class="stat-card"><div class="stat-label">Min Risk:Reward</div><div class="stat-value" id="min-rr">—</div></div>
+    <div class="stat-card"><div class="stat-label">Scan Interval</div><div class="stat-value" id="scan-int">—</div></div>
+    <div class="stat-card"><div class="stat-label">Engine Status</div><div class="stat-value" id="eng-status">—</div></div>
+  </div>
+
+  <div class="card animate-in mb-16">
+    <div class="fw-700 mb-16">Connected Accounts</div>
+    <div id="accounts-list"><div class="empty-state">No accounts connected. Go to Settings to connect one.</div></div>
+  </div>
+
+  <div class="card animate-in">
+    <div class="fw-700 mb-16">Recent Signals</div>
+    <div class="table-wrap" id="signals-tbl"><div class="empty-state">Waiting for next scan cycle…</div></div>
+  </div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+async function load(){
+  const {aiSettings}=await Api.get('/api/settings');
+  if(aiSettings){
+    document.getElementById('min-conf').textContent=aiSettings.min_confidence+'%';
+    document.getElementById('min-rr').textContent='1:'+aiSettings.min_risk_reward;
+    document.getElementById('scan-int').textContent=Math.round(aiSettings.scan_interval_ms/1000)+'s';
+    document.getElementById('eng-status').innerHTML=aiSettings.enabled
+      ?'<span class="dot dot-green pulse"></span> <span class="pos">ON</span>'
+      :'<span class="dot dot-red"></span> <span class="neg">OFF</span>';
+  }
+  const {accounts}=await Api.get('/api/binance/accounts');
+  const list=document.getElementById('accounts-list');
+  list.innerHTML=accounts.length?accounts.map(a=>`
+    <div class="flex justify-between items-center" style="padding:12px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div class="fw-600">${a.label}</div>
+        <div class="text-xs text-3 mt-4">${a.account_type.replace('_',' ')} · ${a.api_key_masked}</div>
+      </div>
+      <div class="flex gap-8 items-center">
+        <span class="badge ${a.is_verified?'badge-green':'badge-red'}">${a.is_verified?'Verified':'Unverified'}</span>
+        <label class="flex items-center gap-6 text-sm" style="cursor:pointer;">
+          <input type="checkbox" ${a.is_active?'checked':''} onchange="toggle(${a.id},this.checked)"/> Auto
+        </label>
+      </div>
+    </div>`).join(''):'<div class="empty-state">No accounts. <a href="/settings.html" style="color:var(--yellow);">Connect one →</a></div>';
+
+  const {signals}=await Api.get('/api/signals');
+  const tbl=document.getElementById('signals-tbl');
+  tbl.innerHTML=signals.length?`<table><thead><tr><th>Symbol</th><th>Dir</th><th>Conf</th><th>Trend</th><th>Vol</th><th>Mom</th><th>R:R</th><th>Status</th></tr></thead><tbody>
+    ${signals.slice(0,20).map(s=>`<tr>
+      <td class="fw-600">${s.symbol}</td>
+      <td>${s.direction==='long'?'<span class="badge badge-green">LONG</span>':'<span class="badge badge-red">SHORT</span>'}</td>
+      <td class="${s.confidence>=95?'pos fw-600':'text-1'}">${s.confidence}%</td>
+      <td>${s.trend_confirmed?'✅':'—'}</td><td>${s.volume_confirmed?'✅':'—'}</td><td>${s.momentum_confirmed?'✅':'—'}</td>
+      <td>1:${(s.risk_reward||0).toFixed(1)}</td>
+      <td><span class="badge badge-gray">${s.status}</span></td>
+    </tr>`).join('')}
+  </tbody></table>`:'<div class="empty-state">Waiting…</div>';
+}
+async function toggle(id,en){
+  try{ await Api.post('/api/trading/auto/toggle',{accountId:id,enabled:en}); }catch(e){ alert(e.message); }
+}
+load(); setInterval(load,10000);
+</script>
+</body></html>

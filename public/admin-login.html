@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin Login | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card animate-in">
+    <div class="card">
+      <h2 class="auth-title">Admin Login</h2>
+      <p class="auth-sub">Restricted access — platform administrators only</p>
+      <div id="alert-box"></div>
+      <form id="form">
+        <div class="field"><label>Username</label><input type="text" name="username" required/></div>
+        <div class="field"><label>Password</label><input type="password" name="password" required/></div>
+        <button class="btn btn-primary btn-block" type="submit" id="btn">Log In</button>
+      </form>
+      <div class="auth-footer"><a href="/login.html" style="color:var(--text-2);">← Back to user login</a></div>
+    </div>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script>
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn=document.getElementById('btn'); const box=document.getElementById('alert-box');
+  box.innerHTML=''; btn.disabled=true; btn.textContent='Logging in…';
+  const f=new FormData(e.target);
+  try{
+    const d=await Api.post('/api/auth/admin/login',{username:f.get('username'),password:f.get('password')});
+    localStorage.setItem('admin_token',d.token);
+    window.location.href='/admin-dashboard.html';
+  }catch(err){
+    box.innerHTML=`<div class="alert alert-error">${err.message}</div>`;
+    btn.disabled=false; btn.textContent='Log In';
+  }
+});
+</script>
+</body>
+</html>

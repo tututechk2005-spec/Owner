@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Markets | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in"><div class="page-title">Markets</div><div class="page-sub">Live prices from Binance</div></div>
+  <div class="card animate-in"><div class="table-wrap" id="tickers"><div class="empty-state">Loading…</div></div></div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+let prices={};
+function render(){
+  const rows=Object.values(prices);
+  if(!rows.length) return;
+  document.getElementById('tickers').innerHTML=`<table><thead><tr><th>Symbol</th><th>Price</th><th>24h Change</th><th>24h Volume</th><th>High</th><th>Low</th></tr></thead><tbody>
+    ${rows.map(t=>`<tr>
+      <td class="fw-700">${t.symbol}</td>
+      <td class="fw-600">$${parseFloat(t.price).toLocaleString(undefined,{maximumFractionDigits:6})}</td>
+      <td class="${parseFloat(t.change)>=0?'pos':'neg'} fw-600">${parseFloat(t.change)>=0?'+':''}${parseFloat(t.change).toFixed(2)}%</td>
+      <td class="text-2">${parseFloat(t.volume).toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+      <td class="text-1">${t.high?'$'+parseFloat(t.high).toLocaleString(undefined,{maximumFractionDigits:4}):'—'}</td>
+      <td class="text-1">${t.low?'$'+parseFloat(t.low).toLocaleString(undefined,{maximumFractionDigits:4}):'—'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+async function loadInitial(){
+  try{
+    const d=await Api.get('/api/markets/tickers');
+    d.tickers.forEach(t=>{ prices[t.symbol]={symbol:t.symbol,price:t.lastPrice,change:t.priceChangePercent,volume:t.quoteVolume,high:t.highPrice,low:t.lowPrice}; });
+    render();
+  }catch(e){ document.getElementById('tickers').innerHTML=`<div class="empty-state">Could not load: ${e.message}</div>`; }
+}
+loadInitial();
+const proto=location.protocol==='https:'?'wss':'ws';
+try{
+  const ws=new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onmessage=(ev)=>{ try{ const m=JSON.parse(ev.data); if(m.type==='ticker'){ prices[m.symbol]={symbol:m.symbol,price:m.price,change:m.change,volume:m.volume}; render(); } }catch(_){} };
+}catch(_){}
+</script>
+</body></html>

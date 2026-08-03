@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Profile | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in"><div class="page-title">Profile</div><div class="page-sub">Your account details</div></div>
+  <div class="card animate-in" style="max-width:500px;">
+    <div id="pf-alert"></div>
+    <form id="pf-form">
+      <div class="field"><label>Full Name</label><input type="text" name="name" id="nm" required/></div>
+      <div class="field"><label>Email</label><input type="email" id="em" disabled/></div>
+      <div class="field"><label>Referral Code</label><input type="text" id="rc" disabled/></div>
+      <div class="field"><label>Member Since</label><input type="text" id="ms" disabled/></div>
+      <button class="btn btn-primary btn-block" type="submit">Save Changes</button>
+    </form>
+    <div class="divider"></div>
+    <button class="btn btn-red btn-block" onclick="logout()">Log Out</button>
+  </div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+async function load(){
+  const {user}=await Api.get('/api/profile');
+  document.getElementById('nm').value=user.name;
+  document.getElementById('em').value=user.email;
+  document.getElementById('rc').value=user.referral_code||'';
+  document.getElementById('ms').value=new Date(user.created_at*1000).toLocaleDateString();
+}
+document.getElementById('pf-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const box=document.getElementById('pf-alert'); box.innerHTML='';
+  try{ await Api.put('/api/profile',{name:document.getElementById('nm').value});
+    box.innerHTML='<div class="alert alert-success">Profile updated.</div>';
+  }catch(err){ box.innerHTML=`<div class="alert alert-error">${err.message}</div>`; }
+});
+load();
+</script>
+</body></html>

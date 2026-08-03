@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Wallet | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in"><div class="page-title">Wallet</div><div class="page-sub">Balances across all connected accounts</div></div>
+  <div id="wallet-accounts" class="animate-in mb-16"><div class="card"><div class="empty-state">Loading balances…</div></div></div>
+  <div class="grid-2 animate-in">
+    <div class="card">
+      <div class="fw-700 mb-16">Log Deposit</div>
+      <p class="text-xs text-3 mb-16">Records an internal deposit entry. Actual funds must be sent directly on Binance.</p>
+      <form id="dep-form">
+        <div class="field"><label>Amount (USDT)</label><input type="number" step="any" name="amount" required/></div>
+        <div class="field"><label>Method</label><input type="text" name="method" placeholder="Bank Transfer, Crypto, etc."/></div>
+        <button class="btn btn-primary btn-block" type="submit">Log Deposit</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="fw-700 mb-16">Request Withdrawal</div>
+      <p class="text-xs text-3 mb-16">Submits a withdrawal request for admin review.</p>
+      <form id="wd-form">
+        <div class="field"><label>Amount (USDT)</label><input type="number" step="any" name="amount" required/></div>
+        <div class="field"><label>Destination</label><input type="text" name="destination" placeholder="Wallet address or bank details"/></div>
+        <button class="btn btn-ghost btn-block" type="submit">Request Withdrawal</button>
+      </form>
+    </div>
+  </div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+async function loadWallet(){
+  const d=await Api.get('/api/wallet');
+  const c=document.getElementById('wallet-accounts');
+  if(!d.accounts.length){c.innerHTML='<div class="card"><div class="empty-state">No verified accounts. <a href="/settings.html" style="color:var(--yellow);">Connect one →</a></div></div>';return;}
+  c.innerHTML=d.accounts.map(a=>{
+    if(a.error) return `<div class="card mb-16"><span class="fw-600">${a.label}</span> <span class="badge badge-red">Error: ${a.error}</span></div>`;
+    if(a.type.startsWith('futures')) return `<div class="card mb-16">
+      <div class="flex justify-between items-center mb-16"><span class="fw-600">${a.label}</span><span class="badge badge-blue">${a.type.replace('_',' ')}</span></div>
+      <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="stat-card"><div class="stat-label">Wallet</div><div class="fw-700">$${a.walletBalance.toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Available</div><div class="fw-700">$${a.availableBalance.toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Margin</div><div class="fw-700">$${a.marginBalance.toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Unrealized PNL</div><div class="fw-700 ${a.unrealizedPnl>=0?'pos':'neg'}">$${a.unrealizedPnl.toFixed(2)}</div></div>
+      </div></div>`;
+    return `<div class="card mb-16">
+      <div class="flex justify-between items-center mb-16"><span class="fw-600">${a.label}</span><span class="badge badge-blue">${a.type.replace('_',' ')}</span></div>
+      ${a.balances.length?`<table><thead><tr><th>Asset</th><th>Free</th><th>Locked</th></tr></thead><tbody>
+        ${a.balances.map(b=>`<tr><td class="fw-600">${b.asset}</td><td>${b.free}</td><td class="text-3">${b.locked}</td></tr>`).join('')}
+      </tbody></table>`:'<div class="empty-state">No balances.</div>'}
+    </div>`;
+  }).join('');
+}
+document.getElementById('dep-form').addEventListener('submit',async e=>{ e.preventDefault(); const f=new FormData(e.target); try{await Api.post('/api/wallet/deposit',{amount:f.get('amount'),method:f.get('method')});alert('Deposit logged.');e.target.reset();}catch(err){alert(err.message);} });
+document.getElementById('wd-form').addEventListener('submit',async e=>{ e.preventDefault(); const f=new FormData(e.target); try{await Api.post('/api/wallet/withdraw',{amount:f.get('amount'),destination:f.get('destination')});alert('Withdrawal requested.');e.target.reset();}catch(err){alert(err.message);} });
+loadWallet();
+</script>
+</body></html>

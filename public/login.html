@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Log In | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card animate-in">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div class="logo-icon" style="width:44px;height:44px;border-radius:12px;background:var(--yellow);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#1a1200"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);">AI Trader</div>
+    </div>
+    <div class="card">
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-sub">Log in to your trading account</p>
+      <div id="alert-box"></div>
+      <form id="login-form">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" required placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <div style="text-align:right;margin-bottom:18px;">
+          <a href="/forgot-password.html" style="font-size:13px;color:var(--yellow);">Forgot password?</a>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submit-btn">Log In</button>
+      </form>
+      <div class="auth-footer">Don't have an account? <a href="/register.html" style="color:var(--yellow);font-weight:600;">Sign up free</a></div>
+    </div>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  const box = document.getElementById('alert-box');
+  box.innerHTML = '';
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  const f = new FormData(e.target);
+  try {
+    const data = await Api.post('/api/auth/login', { email: f.get('email'), password: f.get('password') });
+    localStorage.setItem('token', data.token);
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    box.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+    btn.disabled = false; btn.textContent = 'Log In';
+  }
+});
+</script>
+</body>
+</html>

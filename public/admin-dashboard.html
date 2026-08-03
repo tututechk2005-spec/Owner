@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin Dashboard | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+  .admin-shell{display:flex;min-height:100vh;}
+  .admin-sidebar{width:220px;flex-shrink:0;padding:0 10px 20px;background:var(--bg-card);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;}
+  @media (max-width:900px){ .admin-sidebar{display:none;} }
+  .admin-main{flex:1;min-width:0;padding:16px;}
+  @media (min-width:768px){ .admin-main{padding:24px;} }
+  .admin-tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:18px;padding-bottom:4px;}
+  .admin-tab{flex-shrink:0;padding:8px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-2);background:var(--bg-card);border:1px solid var(--border);cursor:pointer;white-space:nowrap;}
+  .admin-tab.active{background:rgba(240,185,11,0.12);color:var(--yellow);border-color:rgba(240,185,11,0.3);}
+  .admin-panel{display:none;}
+  .admin-panel.active{display:block;}
+</style>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="#1a1200"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      Admin Panel
+    </div>
+    <button class="btn btn-secondary btn-sm btn-block" onclick="adminLogout()" style="margin-top:10px;">Log out</button>
+  </aside>
+  <main class="admin-main">
+    <div class="page-title mb-16">Admin Dashboard</div>
+    <div class="stat-grid mb-16" id="stats-grid"></div>
+
+    <div class="admin-tabs">
+      <div class="admin-tab active" data-tab="users">Users</div>
+      <div class="admin-tab" data-tab="accounts">Accounts</div>
+      <div class="admin-tab" data-tab="trades">Trades</div>
+      <div class="admin-tab" data-tab="signals">Signals</div>
+      <div class="admin-tab" data-tab="rejected">Rejected Signals</div>
+      <div class="admin-tab" data-tab="scanner">Scanner Status</div>
+      <div class="admin-tab" data-tab="referrals">Referrals</div>
+      <div class="admin-tab" data-tab="deposits">Deposits</div>
+      <div class="admin-tab" data-tab="withdrawals">Withdrawals</div>
+      <div class="admin-tab" data-tab="notifications">Notifications</div>
+      <div class="admin-tab" data-tab="broadcast">Broadcast</div>
+      <div class="admin-tab" data-tab="tickets">Tickets</div>
+      <div class="admin-tab" data-tab="logs">Logs</div>
+      <div class="admin-tab" data-tab="ai-settings">AI Settings</div>
+      <div class="admin-tab" data-tab="risk-settings">Risk Settings</div>
+      <div class="admin-tab" data-tab="site-settings">Website</div>
+      <div class="admin-tab" data-tab="server">Server</div>
+    </div>
+
+    <div class="card admin-panel active" id="panel-users"><div class="table-wrap" id="users-table"></div></div>
+    <div class="card admin-panel" id="panel-accounts"><div class="table-wrap" id="accounts-table"></div></div>
+    <div class="card admin-panel" id="panel-trades"><div class="table-wrap" id="trades-table"></div></div>
+    <div class="card admin-panel" id="panel-signals"><div class="table-wrap" id="signals-table"></div></div>
+    <div class="card admin-panel" id="panel-rejected">
+      <div class="fw-700 mb-16">Rejected Signals <span class="text-2 text-xs fw-400">— every rejection with its exact reason</span></div>
+      <div class="table-wrap" id="rejected-table"></div>
+    </div>
+    <div class="card admin-panel" id="panel-scanner">
+      <div class="fw-700 mb-16">Scanner Status</div>
+      <div id="scanner-status"><div class="empty-state">Loading…</div></div>
+    </div>
+    <div class="card admin-panel" id="panel-referrals"><div class="table-wrap" id="referrals-table"></div></div>
+    <div class="card admin-panel" id="panel-deposits"><div class="table-wrap" id="deposits-table"></div></div>
+    <div class="card admin-panel" id="panel-withdrawals"><div class="table-wrap" id="withdrawals-table"></div></div>
+    <div class="card admin-panel" id="panel-notifications"><div class="table-wrap" id="notifications-table"></div></div>
+
+    <div class="card admin-panel" id="panel-broadcast">
+      <div class="fw-700 mb-16">Broadcast Notification</div>
+      <form id="broadcast-form">
+        <div class="field"><label>Title</label><input type="text" name="title" required/></div>
+        <div class="field"><label>Message</label><textarea name="message" required></textarea></div>
+        <div class="field"><label>Type</label>
+          <select name="type"><option value="announcement">Announcement</option><option value="warning">Warning</option><option value="info">Info</option></select>
+        </div>
+        <button class="btn btn-primary" type="submit">Send to All Users</button>
+      </form>
+    </div>
+
+    <div class="card admin-panel" id="panel-tickets"><div id="tickets-table"></div></div>
+    <div class="card admin-panel" id="panel-logs"><div class="table-wrap" id="logs-table"></div></div>
+
+    <div class="card admin-panel" id="panel-ai-settings">
+      <div class="fw-700 mb-16">AI Engine Settings</div>
+      <form id="ai-settings-form">
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Min Confidence (%)</label><input type="number" name="min_confidence" step="0.1"/></div>
+          <div class="field"><label>Min Risk:Reward</label><input type="number" name="min_risk_reward" step="0.1"/></div>
+          <div class="field"><label>Scan Interval (ms)</label><input type="number" name="scan_interval_ms" step="500"/></div>
+          <div class="field"><label>Engine</label><select name="enabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+        </div>
+        <div class="field"><label>Required MTF Timeframes (csv)</label><input type="text" name="timeframes"/><div class="hint">Signals are rejected outright unless all of these agree on direction.</div></div>
+        <div class="field"><label>Fallback Symbols (csv, used only if dynamic scanning is off)</label><input type="text" name="symbols"/></div>
+
+        <div class="divider"></div>
+        <div class="fw-700 mb-16">Scanner Configuration</div>
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Dynamic Symbol Scanning</label>
+            <select name="use_dynamic_symbols"><option value="1">On - scan all Futures USDT perpetuals</option><option value="0">Off - use fallback list above</option></select>
+          </div>
+          <div class="field"><label>Symbol Refresh Interval (ms)</label><input type="number" name="symbol_refresh_interval_ms" step="60000"/></div>
+          <div class="field"><label>Symbols Per Scan Cycle</label><input type="number" name="symbols_per_cycle" step="1"/><div class="hint">Batched round-robin - avoids hitting Binance rate limits.</div></div>
+          <div class="field"><label>Signal Cooldown (ms)</label><input type="number" name="signal_cooldown_ms" step="60000"/><div class="hint">Minimum time before the same symbol+direction can signal again.</div></div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="fw-700 mb-16">Telegram Alerts</div>
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Telegram</label><select name="telegram_enabled"><option value="0">Disabled</option><option value="1">Enabled</option></select></div>
+          <div class="field"><label>Bot Token</label><input type="text" name="telegram_bot_token" placeholder="123456:ABC-DEF..." autocomplete="off"/></div>
+          <div class="field"><label>Chat ID</label><input type="text" name="telegram_chat_id" placeholder="-1001234567890"/></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button type="button" class="btn btn-ghost btn-block" onclick="testTelegram()">Send Test Message</button></div>
+        </div>
+        <div id="tg-test-alert"></div>
+
+        <button class="btn btn-primary" type="submit">Save AI Settings</button>
+      </form>
+    </div>
+
+    <div class="card admin-panel" id="panel-risk-settings">
+      <div class="fw-700 mb-16">Risk Management Settings</div>
+      <form id="risk-settings-form">
+        <div class="grid-2-even" style="gap:12px;">
+          <div class="field"><label>Max Risk/Trade (%)</label><input type="number" name="max_risk_per_trade_pct" step="0.1"/></div>
+          <div class="field"><label>Max Open Positions</label><input type="number" name="max_open_positions"/></div>
+          <div class="field"><label>Default Leverage</label><input type="number" name="default_leverage" step="1"/></div>
+          <div class="field"><label>Max Leverage</label><input type="number" name="max_leverage" step="1"/></div>
+          <div class="field"><label>Stop Loss (%)</label><input type="number" name="stop_loss_pct" step="0.1"/></div>
+          <div class="field"><label>Take Profit (%)</label><input type="number" name="take_profit_pct" step="0.1"/></div>
+          <div class="field"><label>Trailing Stop (%)</label><input type="number" name="trailing_stop_pct" step="0.1"/></div>
+          <div class="field"><label>Break-even Trigger (%)</label><input type="number" name="break_even_trigger_pct" step="0.1"/></div>
+        </div>
+        <button class="btn btn-primary" type="submit">Save Risk Settings</button>
+      </form>
+    </div>
+
+    <div class="card admin-panel" id="panel-site-settings">
+      <div class="fw-700 mb-16">Website Settings</div>
+      <form id="site-settings-form">
+        <div class="field"><label>Site Name</label><input type="text" name="site_name"/></div>
+        <div class="field"><label>Maintenance Mode</label><select name="maintenance_mode"><option value="off">Off</option><option value="on">On</option></select></div>
+        <div class="field"><label>Registration</label><select name="registration_open"><option value="on">Open</option><option value="off">Closed</option></select></div>
+        <button class="btn btn-primary" type="submit">Save Website Settings</button>
+      </form>
+    </div>
+
+    <div class="card admin-panel" id="panel-server">
+      <div class="fw-700 mb-16">Server Status</div>
+      <div id="server-status"><div class="empty-state">Loading…</div></div>
+    </div>
+  </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/admin-auth.js"></script>
+<script>
+document.querySelectorAll('.admin-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+async function A(url){ return Api.get(url,true); }
+async function loadStats(){
+  const s=await A('/api/admin/stats');
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value">${s.users}</div></div>
+    <div class="stat-card"><div class="stat-label">Accounts</div><div class="stat-value">${s.accounts}</div></div>
+    <div class="stat-card"><div class="stat-label">Trades</div><div class="stat-value">${s.trades}</div></div>
+    <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value ${s.totalPnl>=0?'pos':'neg'}">$${Number(s.totalPnl).toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value">${s.openPositions}</div></div>
+    <div class="stat-card"><div class="stat-label">AI Signals</div><div class="stat-value">${s.signals}</div></div>
+    <div class="stat-card"><div class="stat-label">Referrals</div><div class="stat-value">${s.referrals}</div></div>
+    <div class="stat-card"><div class="stat-label">Open Tickets</div><div class="stat-value">${s.openTickets}</div></div>`;
+}
+async function loadUsers(){
+  const {users}=await A('/api/admin/users');
+  document.getElementById('users-table').innerHTML=`<table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
+    ${users.map(u=>`<tr><td class="fw-600">${u.name}</td><td class="text-2">${u.email}</td><td><span class="badge ${u.status==='active'?'badge-green':'badge-red'}">${u.status}</span></td><td class="text-3">${new Date(u.created_at*1000).toLocaleDateString()}</td>
+      <td>${u.status==='active'?`<button class="btn btn-red btn-sm" onclick="suspendUser(${u.id})">Suspend</button>`:`<button class="btn btn-green btn-sm" onclick="activateUser(${u.id})">Activate</button>`}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+async function suspendUser(id){ await Api.post(`/api/admin/users/${id}/suspend`,{},true); loadUsers(); }
+async function activateUser(id){ await Api.post(`/api/admin/users/${id}/activate`,{},true); loadUsers(); }
+async function loadAccounts(){
+  const {accounts}=await A('/api/admin/binance-accounts');
+  document.getElementById('accounts-table').innerHTML=`<table><thead><tr><th>User</th><th>Type</th><th>Key</th><th>Active</th><th>Verified</th></tr></thead><tbody>
+    ${accounts.map(a=>`<tr><td>${a.name}<div class="text-3 text-xs">${a.email}</div></td><td>${a.account_type.replace('_',' ')}</td><td class="text-2">${a.api_key_masked}</td><td>${a.is_active?'Yes':'No'}</td><td>${a.is_verified?'Yes':'No'}</td></tr>`).join('')}</tbody></table>`;
+}
+async function loadTrades(){
+  const {trades}=await A('/api/admin/trades');
+  document.getElementById('trades-table').innerHTML=`<table><thead><tr><th>User</th><th>Symbol</th><th>Side</th><th>PNL</th><th>Result</th><th>Src</th></tr></thead><tbody>
+    ${trades.map(t=>`<tr><td>${t.name}</td><td class="fw-600">${t.symbol}</td><td>${t.side}</td><td class="${t.pnl>=0?'pos':'neg'}">$${Number(t.pnl).toFixed(2)}</td><td>${t.result}</td><td>${t.source}</td></tr>`).join('')}</tbody></table>`;
+}
+async function loadSignals(){
+  const {signals}=await A('/api/admin/signals');
+  document.getElementById('signals-table').innerHTML=`<table><thead><tr><th>Symbol</th><th>Dir</th><th>Conf</th><th>Status</th></tr></thead><tbody>
+    ${signals.map(s=>`<tr><td class="fw-600">${s.symbol}</td><td>${s.direction}</td><td>${s.confidence}%</td><td><span class="badge badge-gray">${s.status}</span></td></tr>`).join('')}</tbody></table>`;
+}
+async function loadReferrals(){
+  const {referrals}=await A('/api/admin/referrals');
+  document.getElementById('referrals-table').innerHTML=`<table><thead><tr><th>Referrer</th><th>Referred</th><th>Status</th></tr></thead><tbody>
+    ${referrals.map(r=>`<tr><td>${r.referrer_name}</td><td>${r.referred_name}</td><td>${r.status}</td></tr>`).join('')}</tbody></table>`;
+}
+async function loadDeposits(){
+  const {deposits}=await A('/api/admin/deposits');
+  document.getElementById('deposits-table').innerHTML=`<table><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Action</th></tr></thead><tbody>
+    ${deposits.map(d=>`<tr><td>${d.name}</td><td>$${d.amount}</td><td>${d.method}</td><td>${d.status}</td><td>${d.status==='pending'?`<button class="btn btn-green btn-sm" onclick="approveDeposit(${d.id})">Approve</button>`:''}</td></tr>`).join('')}</tbody></table>`;
+}
+async function approveDeposit(id){ await Api.post(`/api/admin/deposits/${id}/approve`,{},true); loadDeposits(); }
+async function loadWithdrawals(){
+  const {withdrawals}=await A('/api/admin/withdrawals');
+  document.getElementById('withdrawals-table').innerHTML=`<table><thead><tr><th>User</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    ${withdrawals.map(w=>`<tr><td>${w.name}</td><td>$${w.amount}</td><td>${w.status}</td><td>${w.status==='pending'?`<button class="btn btn-green btn-sm" onclick="approveWithdrawal(${w.id})">Approve</button> <button class="btn btn-red btn-sm" onclick="rejectWithdrawal(${w.id})">Reject</button>`:''}</td></tr>`).join('')}</tbody></table>`;
+}
+async function approveWithdrawal(id){ await Api.post(`/api/admin/withdrawals/${id}/approve`,{},true); loadWithdrawals(); }
+async function rejectWithdrawal(id){ await Api.post(`/api/admin/withdrawals/${id}/reject`,{},true); loadWithdrawals(); }
+async function loadNotifications(){
+  const {notifications}=await A('/api/admin/notifications');
+  document.getElementById('notifications-table').innerHTML=`<table><thead><tr><th>Title</th><th>Message</th><th>Type</th><th>Time</th></tr></thead><tbody>
+    ${notifications.map(n=>`<tr><td class="fw-600">${n.title}</td><td class="text-2">${n.message}</td><td>${n.type}</td><td class="text-3">${new Date(n.created_at*1000).toLocaleString()}</td></tr>`).join('')}</tbody></table>`;
+}
+document.getElementById('broadcast-form').addEventListener('submit',async e=>{
+  e.preventDefault(); const f=new FormData(e.target);
+  await Api.post('/api/admin/broadcast',{title:f.get('title'),message:f.get('message'),type:f.get('type')},true);
+  alert('Broadcast sent.'); e.target.reset();
+});
+async function loadTickets(){
+  const {tickets}=await A('/api/admin/support-tickets');
+  document.getElementById('tickets-table').innerHTML=tickets.map(t=>`
+    <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+      <div class="flex justify-between"><strong class="text-sm">${t.subject}</strong><span class="badge ${t.status==='open'?'badge-yellow':'badge-green'}">${t.status}</span></div>
+      <div class="text-2 text-xs mt-4">${t.name} (${t.email}): ${t.message}</div>
+      ${t.status==='open'?`<div class="flex gap-8 mt-8"><input type="text" placeholder="Reply…" id="reply-${t.id}" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border2);background:var(--bg-input);color:var(--text-0);"/><button class="btn btn-primary btn-sm" onclick="replyTicket(${t.id})">Send</button></div>`:`<div class="text-yellow text-xs mt-8">Reply: ${t.reply||''}</div>`}
+    </div>`).join('')||'<div class="empty-state">No tickets.</div>';
+}
+async function replyTicket(id){ const reply=document.getElementById('reply-'+id).value; await Api.post(`/api/admin/support-tickets/${id}/reply`,{reply},true); loadTickets(); }
+async function loadLogs(){
+  const {logs}=await A('/api/admin/logs');
+  document.getElementById('logs-table').innerHTML=`<table><thead><tr><th>Time</th><th>Level</th><th>Scope</th><th>Message</th></tr></thead><tbody>
+    ${logs.map(l=>`<tr><td class="text-3 text-xs nowrap">${new Date(l.created_at*1000).toLocaleString()}</td><td><span class="badge ${l.level==='error'?'badge-red':l.level==='warn'?'badge-yellow':'badge-blue'}">${l.level}</span></td><td>${l.scope}</td><td class="text-2">${l.message}</td></tr>`).join('')}</tbody></table>`;
+}
+async function loadAiSettings(){
+  const {settings}=await A('/api/admin/ai-settings');
+  const f=document.getElementById('ai-settings-form');
+  f.min_confidence.value=settings.min_confidence; f.min_risk_reward.value=settings.min_risk_reward;
+  f.scan_interval_ms.value=settings.scan_interval_ms; f.enabled.value=settings.enabled?'1':'0';
+  f.timeframes.value=settings.timeframes; f.symbols.value=settings.symbols;
+  f.use_dynamic_symbols.value=settings.use_dynamic_symbols?'1':'0';
+  f.symbol_refresh_interval_ms.value=settings.symbol_refresh_interval_ms;
+  f.symbols_per_cycle.value=settings.symbols_per_cycle;
+  f.signal_cooldown_ms.value=settings.signal_cooldown_ms;
+  f.telegram_enabled.value=settings.telegram_enabled?'1':'0';
+  f.telegram_bot_token.value=settings.telegram_bot_token||'';
+  f.telegram_chat_id.value=settings.telegram_chat_id||'';
+}
+document.getElementById('ai-settings-form').addEventListener('submit',async e=>{
+  e.preventDefault(); const f=new FormData(e.target);
+  try{
+    await Api.put('/api/admin/ai-settings',{
+      min_confidence:parseFloat(f.get('min_confidence')),min_risk_reward:parseFloat(f.get('min_risk_reward')),
+      scan_interval_ms:parseInt(f.get('scan_interval_ms')),enabled:f.get('enabled')==='1',
+      timeframes:f.get('timeframes'),symbols:f.get('symbols'),
+      use_dynamic_symbols:f.get('use_dynamic_symbols')==='1',
+      symbol_refresh_interval_ms:parseInt(f.get('symbol_refresh_interval_ms')),
+      symbols_per_cycle:parseInt(f.get('symbols_per_cycle')),
+      signal_cooldown_ms:parseInt(f.get('signal_cooldown_ms')),
+      telegram_enabled:f.get('telegram_enabled')==='1',
+      telegram_bot_token:f.get('telegram_bot_token'),
+      telegram_chat_id:f.get('telegram_chat_id'),
+    },true);
+    alert('AI settings saved.');
+  }catch(err){ alert('Failed to save: '+err.message); }
+});
+async function testTelegram(){
+  const box=document.getElementById('tg-test-alert');
+  box.innerHTML='<div class="alert alert-info">Sending test message…</div>';
+  try{
+    await Api.post('/api/admin/telegram/test',{},true);
+    box.innerHTML='<div class="alert alert-success">Test message sent! Check your Telegram chat.</div>';
+  }catch(err){
+    box.innerHTML=`<div class="alert alert-error">Failed: ${err.message}</div>`;
+  }
+}
+async function loadRejectedSignals(){
+  const {signals}=await A('/api/admin/rejected-signals');
+  document.getElementById('rejected-table').innerHTML=signals.length?`<table><thead><tr><th>Time</th><th>Symbol</th><th>Reason</th></tr></thead><tbody>
+    ${signals.map(s=>`<tr><td class="text-3 text-xs nowrap">${new Date(s.created_at*1000).toLocaleString()}</td><td class="fw-600">${s.symbol}</td><td class="text-2">${s.rejection_reason||'—'}</td></tr>`).join('')}
+  </tbody></table>`:'<div class="empty-state">No rejected signals logged yet.</div>';
+}
+async function loadScannerStatus(){
+  const s=await A('/api/admin/scanner-status');
+  document.getElementById('scanner-status').innerHTML=`
+    <div class="stat-grid mb-16">
+      <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value">${s.status==='scanning'?'<span class="dot dot-green pulse"></span> Scanning':'<span class="dot dot-yellow"></span> Idle'}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Pairs Tracked</div><div class="stat-value">${s.totalPairs}</div></div>
+      <div class="stat-card"><div class="stat-label">Executed Today</div><div class="stat-value pos">${s.executedSignalsToday}</div></div>
+      <div class="stat-card"><div class="stat-label">Rejected Today</div><div class="stat-value neg">${s.rejectedSignalsToday}</div></div>
+    </div>
+    <div class="flex justify-between text-sm" style="padding:8px 0;border-bottom:1px solid var(--border);"><span class="text-2">Last Scan</span><span>${s.lastScanAt?new Date(s.lastScanAt*1000).toLocaleString():'never'}</span></div>
+    <div class="flex justify-between text-sm" style="padding:8px 0;border-bottom:1px solid var(--border);"><span class="text-2">Last Symbol Refresh</span><span>${s.lastSymbolRefresh?new Date(s.lastSymbolRefresh).toLocaleString():'never'}</span></div>
+    <div class="flex justify-between text-sm" style="padding:8px 0;"><span class="text-2">Last Batch Scanned</span><span class="text-xs" style="max-width:60%;text-align:right;word-break:break-all;">${s.lastScanBatch||'—'}</span></div>
+  `;
+}
+async function loadRiskSettings(){
+  const {settings}=await A('/api/admin/risk-settings');
+  const f=document.getElementById('risk-settings-form');
+  Object.keys(settings).forEach(k=>{ if(f[k]) f[k].value=settings[k]; });
+}
+document.getElementById('risk-settings-form').addEventListener('submit',async e=>{
+  e.preventDefault(); const f=new FormData(e.target); const payload={};
+  for(const [k,v] of f.entries()) payload[k]=parseFloat(v);
+  await Api.put('/api/admin/risk-settings',payload,true);
+  alert('Risk settings saved.');
+});
+async function loadSiteSettings(){
+  const {settings}=await A('/api/admin/site-settings');
+  const f=document.getElementById('site-settings-form');
+  if(settings.site_name) f.site_name.value=settings.site_name;
+  if(settings.maintenance_mode) f.maintenance_mode.value=settings.maintenance_mode;
+  if(settings.registration_open) f.registration_open.value=settings.registration_open;
+}
+document.getElementById('site-settings-form').addEventListener('submit',async e=>{
+  e.preventDefault(); const f=new FormData(e.target);
+  await Api.put('/api/admin/site-settings',Object.fromEntries(f.entries()),true);
+  alert('Website settings saved.');
+});
+async function loadServerStatus(){
+  const s=await A('/api/admin/server-status');
+  document.getElementById('server-status').innerHTML=`
+    <div class="flex justify-between" style="padding:8px 0;border-bottom:1px solid var(--border);"><span>Status</span><span class="badge badge-green">${s.status}</span></div>
+    <div class="flex justify-between" style="padding:8px 0;border-bottom:1px solid var(--border);"><span>Uptime</span><span>${Math.floor(s.uptimeSeconds/60)} min</span></div>
+    <div class="flex justify-between" style="padding:8px 0;border-bottom:1px solid var(--border);"><span>Node Version</span><span>${s.nodeVersion}</span></div>
+    <div class="flex justify-between" style="padding:8px 0;"><span>Memory (RSS)</span><span>${(s.memory.rss/1024/1024).toFixed(1)} MB</span></div>`;
+}
+loadStats(); loadUsers(); loadAccounts(); loadTrades(); loadSignals(); loadRejectedSignals(); loadScannerStatus(); loadReferrals();
+loadDeposits(); loadWithdrawals(); loadNotifications(); loadTickets(); loadLogs();
+loadAiSettings(); loadRiskSettings(); loadSiteSettings(); loadServerStatus();
+setInterval(loadScannerStatus, 10000);
+</script>
+</body>
+</html>

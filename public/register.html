@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Create Account | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card animate-in">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div class="logo-icon" style="width:44px;height:44px;border-radius:12px;background:var(--yellow);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#1a1200"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);">AI Trader</div>
+    </div>
+    <div class="card">
+      <h2 class="auth-title">Create account</h2>
+      <p class="auth-sub">Start with Testnet — no real funds needed</p>
+      <div id="alert-box"></div>
+      <form id="register-form">
+        <div class="field"><label>Full Name</label><input type="text" name="name" required placeholder="Jane Trader" autocomplete="name"/></div>
+        <div class="field"><label>Email Address</label><input type="email" name="email" required placeholder="you@example.com" autocomplete="email"/></div>
+        <div class="field"><label>Password</label><input type="password" name="password" required minlength="8" placeholder="At least 8 characters" autocomplete="new-password"/></div>
+        <div class="field"><label>Referral Code <span style="color:var(--text-3);font-weight:400;text-transform:none;">(optional)</span></label><input type="text" name="referralCode" id="ref-input" placeholder="e.g. JANE1A2B3C"/></div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submit-btn">Create Account</button>
+      </form>
+      <div class="auth-footer">Already have an account? <a href="/login.html" style="color:var(--yellow);font-weight:600;">Log in</a></div>
+    </div>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script>
+const ref = new URLSearchParams(window.location.search).get('ref');
+if (ref) document.getElementById('ref-input').value = ref;
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  const box = document.getElementById('alert-box');
+  box.innerHTML = '';
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  const f = new FormData(e.target);
+  try {
+    const data = await Api.post('/api/auth/register', {
+      name: f.get('name'), email: f.get('email'),
+      password: f.get('password'), referralCode: f.get('referralCode') || undefined,
+    });
+    localStorage.setItem('token', data.token);
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    box.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+    btn.disabled = false; btn.textContent = 'Create Account';
+  }
+});
+</script>
+</body>
+</html>

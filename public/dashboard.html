@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell">
+<div id="page-content">
+
+  <div class="page-header animate-in">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Live overview · auto-refreshes every 15s</div>
+  </div>
+
+  <!-- No account banner -->
+  <div id="no-account-banner" style="display:none;" class="card animate-in mb-16">
+    <div class="flex items-center gap-8 mb-12">
+      <span class="dot dot-yellow pulse"></span>
+      <strong>No Binance account connected</strong>
+    </div>
+    <p class="text-2 text-sm" style="margin-bottom:14px;">Connect a Spot or Futures account to start syncing live balances and enable AI auto-trading.</p>
+    <a href="/settings.html" class="btn btn-primary btn-sm">Connect Account →</a>
+  </div>
+
+  <!-- Stat grid -->
+  <div class="stat-grid animate-in mb-16" id="stat-grid">
+    <div class="stat-card"><div class="stat-label">Bot Status</div><div class="stat-value accent" id="bot-status"><span class="dot dot-green pulse"></span> —</div></div>
+    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="total-trades">—</div></div>
+    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value" id="win-rate">—</div></div>
+    <div class="stat-card"><div class="stat-label">ROI All-Time</div><div class="stat-value" id="roi">—</div></div>
+  </div>
+
+  <!-- PNL + Status row -->
+  <div class="grid-2 animate-in mb-16">
+    <div class="card">
+      <div class="flex justify-between items-center mb-16">
+        <div class="fw-700">Profit &amp; Loss</div>
+        <span class="badge badge-green" id="pnl-badge">Today +$0</span>
+      </div>
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div><div class="stat-label">Total Profit</div><div class="fw-700 pos" id="total-profit">$0.00</div></div>
+        <div><div class="stat-label">Total Loss</div><div class="fw-700 neg" id="total-loss">$0.00</div></div>
+        <div><div class="stat-label">This Week</div><div class="fw-700" id="weekly-profit">$0.00</div></div>
+        <div><div class="stat-label">Today</div><div class="fw-700" id="today-profit">$0.00</div></div>
+        <div><div class="stat-label">This Month</div><div class="fw-700" id="monthly-profit">$0.00</div></div>
+        <div><div class="stat-label">Loss Rate</div><div class="fw-700" id="loss-rate">0%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="fw-700 mb-16">System Status</div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">Server</span><span class="badge badge-green"><span class="dot dot-green"></span> Online</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">AI Engine</span><span class="badge badge-green" id="ai-badge"><span class="dot dot-green"></span> Running</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">Accounts</span><span class="fw-600 text-sm" id="account-count">0 connected</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">API Connection</span><span class="badge badge-gray" id="api-status-badge">Checking…</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">Scanner</span><span class="badge badge-gray" id="scanner-status-badge">—</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">Pairs Scanned</span><span class="fw-600 text-sm" id="pairs-scanned">0</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;border-bottom:1px solid var(--border);">
+        <span class="text-2 text-sm">Open Positions</span><span class="fw-600 text-sm" id="open-pos">0</span>
+      </div>
+      <div class="flex justify-between items-center" style="padding:9px 0;">
+        <span class="text-2 text-sm">Open Orders</span><span class="fw-600 text-sm" id="open-orders">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Open positions -->
+  <div class="card animate-in mb-16">
+    <div class="flex justify-between items-center mb-16">
+      <div class="fw-700">Open Positions</div>
+      <a href="/manual-trading.html" class="btn btn-ghost btn-sm">Manage →</a>
+    </div>
+    <div class="table-wrap" id="positions-table"><div class="empty-state">No open positions right now.</div></div>
+  </div>
+
+  <!-- Latest signals -->
+  <div class="card animate-in">
+    <div class="flex justify-between items-center mb-16">
+      <div class="fw-700">Latest AI Signals</div>
+      <a href="/signals.html" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div class="table-wrap" id="signals-table"><div class="empty-state">No signals yet — engine scans every 15s.</div></div>
+  </div>
+
+</div>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/layout.js"></script>
+<script>
+function fmt(n){ return '$'+(+n||0).toFixed(2); }
+function cls(n){ return +n>=0?'pos':'neg'; }
+async function load(){
+  try {
+    const d = await Api.get('/api/dashboard/summary');
+    document.getElementById('total-trades').textContent = d.totalTrades;
+    document.getElementById('win-rate').textContent = d.winRate.toFixed(1)+'%';
+    document.getElementById('loss-rate').textContent = d.lossRate.toFixed(1)+'%';
+    document.getElementById('roi').textContent = (d.roi>=0?'+':'')+d.roi.toFixed(1)+'%';
+    document.getElementById('roi').className='stat-value '+(d.roi>=0?'pos':'neg');
+    document.getElementById('total-profit').textContent = fmt(d.totalProfit);
+    document.getElementById('total-loss').textContent = fmt(d.totalLoss);
+    document.getElementById('today-profit').textContent = fmt(d.todayProfit);
+    document.getElementById('today-profit').className='fw-700 '+cls(d.todayProfit);
+    document.getElementById('weekly-profit').textContent = fmt(d.weeklyProfit);
+    document.getElementById('weekly-profit').className='fw-700 '+cls(d.weeklyProfit);
+    document.getElementById('monthly-profit').textContent = fmt(d.monthlyProfit);
+    document.getElementById('pnl-badge').textContent = 'Today '+(d.todayProfit>=0?'+':'')+fmt(d.todayProfit);
+    document.getElementById('pnl-badge').className='badge '+(d.todayProfit>=0?'badge-green':'badge-red');
+    document.getElementById('account-count').textContent = d.accounts.length+' connected';
+    document.getElementById('open-pos').textContent = d.openPositions.length;
+    document.getElementById('api-status-badge').innerHTML = d.apiConnected
+      ? '<span class="dot dot-green"></span> Connected' : '<span class="dot dot-red"></span> Not Connected';
+    document.getElementById('api-status-badge').className = 'badge '+(d.apiConnected?'badge-green':'badge-red');
+    document.getElementById('scanner-status-badge').innerHTML = d.scannerStatus==='scanning'
+      ? '<span class="dot dot-green pulse"></span> Scanning' : '<span class="dot dot-yellow"></span> Idle';
+    document.getElementById('scanner-status-badge').className = 'badge '+(d.scannerStatus==='scanning'?'badge-green':'badge-yellow');
+    document.getElementById('pairs-scanned').textContent = d.totalPairsScanned;
+    document.getElementById('open-orders').textContent = d.openOrders.length;
+    document.getElementById('bot-status').innerHTML = d.botStatus==='running'
+      ? '<span class="dot dot-green pulse"></span> Running'
+      : '<span class="dot dot-red"></span> Stopped';
+    document.getElementById('no-account-banner').style.display = d.accounts.length?'none':'block';
+
+    const pt = document.getElementById('positions-table');
+    pt.innerHTML = d.openPositions.length
+      ? `<table><thead><tr><th>Symbol</th><th>Side</th><th>Entry</th><th>Qty</th><th>SL</th><th>TP</th></tr></thead><tbody>
+          ${d.openPositions.map(p=>`<tr>
+            <td class="fw-600">${p.symbol}</td>
+            <td>${p.side==='long'?'<span class="badge badge-green">LONG</span>':'<span class="badge badge-red">SHORT</span>'}</td>
+            <td>${p.entry_price??'—'}</td><td>${p.quantity??'—'}</td>
+            <td class="neg">${p.stop_loss??'—'}</td><td class="pos">${p.take_profit??'—'}</td>
+          </tr>`).join('')}
+        </tbody></table>`
+      : '<div class="empty-state">No open positions right now.</div>';
+
+    const st = document.getElementById('signals-table');
+    st.innerHTML = d.latestSignals.length
+      ? `<table><thead><tr><th>Symbol</th><th>Direction</th><th>Confidence</th><th>R:R</th><th>Status</th></tr></thead><tbody>
+          ${d.latestSignals.map(s=>`<tr>
+            <td class="fw-600">${s.symbol}</td>
+            <td>${s.direction==='long'?'<span class="badge badge-green">LONG</span>':'<span class="badge badge-red">SHORT</span>'}</td>
+            <td class="${s.confidence>=95?'pos':'text-1'}">${s.confidence}%</td>
+            <td>1:${(s.risk_reward||0).toFixed(2)}</td>
+            <td><span class="badge badge-gray">${s.status}</span></td>
+          </tr>`).join('')}
+        </tbody></table>`
+      : '<div class="empty-state">No signals yet — engine scans every 15s.</div>';
+  } catch(e){ console.error(e); }
+}
+load(); setInterval(load,15000);
+const proto=location.protocol==='https:'?'wss':'ws';
+try{
+  const ws=new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onmessage=()=>load();
+}catch(_){}
+</script>
+</body>
+</html>

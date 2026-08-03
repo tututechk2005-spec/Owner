@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Referral | AI Trader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="app-shell" id="app-shell"><div id="page-content">
+  <div class="page-header animate-in"><div class="page-title">Referral Program</div><div class="page-sub">Share your link and earn</div></div>
+  <div class="card animate-in mb-16">
+    <div class="stat-label mb-12">Your Referral Link</div>
+    <div class="flex gap-10" style="flex-wrap:wrap;">
+      <input id="ref-link" readonly style="flex:1;min-width:200px;background:var(--bg-input);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text-0);padding:11px 14px;font-size:13px;"/>
+      <button class="btn btn-primary btn-sm" onclick="copyLink()">Copy Link</button>
+    </div>
+  </div>
+  <div class="stat-grid animate-in mb-16">
+    <div class="stat-card"><div class="stat-label">Total Referrals</div><div class="stat-value" id="total-ref">0</div></div>
+    <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value pos" id="active-ref">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Earnings</div><div class="stat-value" id="earnings">$0.00</div></div>
+    <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value accent" id="balance">$0.00</div></div>
+  </div>
+  <div class="grid-2 animate-in">
+    <div class="card"><div class="fw-700 mb-16">Referral History</div><div id="history"><div class="empty-state">No referrals yet.</div></div></div>
+    <div class="card"><div class="fw-700 mb-16">Leaderboard</div><div id="leaderboard"><div class="empty-state">No data yet.</div></div></div>
+  </div>
+</div></div>
+<script src="/js/api.js"></script><script src="/js/auth.js"></script><script src="/js/layout.js"></script>
+<script>
+function copyLink(){ const i=document.getElementById('ref-link'); i.select(); document.execCommand('copy'); }
+async function load(){
+  const d=await Api.get('/api/referral');
+  document.getElementById('ref-link').value=d.referralLink;
+  document.getElementById('total-ref').textContent=d.totalReferrals;
+  document.getElementById('active-ref').textContent=d.activeReferrals;
+  document.getElementById('earnings').textContent='$'+d.totalEarnings.toFixed(2);
+  document.getElementById('balance').textContent='$'+d.balance.toFixed(2);
+  document.getElementById('history').innerHTML=d.history.length
+    ?d.history.map(h=>`<div class="flex justify-between" style="padding:10px 0;border-bottom:1px solid var(--border);"><span class="text-sm">${h.name}</span><span class="badge badge-green">${h.status}</span></div>`).join('')
+    :'<div class="empty-state">No referrals yet.</div>';
+  const lb=await Api.get('/api/referral/leaderboard');
+  document.getElementById('leaderboard').innerHTML=lb.leaderboard.length
+    ?lb.leaderboard.map((r,i)=>`<div class="flex justify-between" style="padding:10px 0;border-bottom:1px solid var(--border);"><span class="text-sm"><span class="text-yellow fw-600">#${i+1}</span> ${r.name}</span><span class="text-sm text-2">${r.referral_count} refs</span></div>`).join('')
+    :'<div class="empty-state">No data yet.</div>';
+}
+load();
+</script>
+</body></html>
