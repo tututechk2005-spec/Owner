@@ -3,7 +3,7 @@ const db = require('../db');
 const logger = require('../utils/logger');
 const { buildClient, BinanceClient } = require('../binance/binanceService');
 const { analyzeTimeframe, buildConfluence, persistSignal, persistRejectedSignal, REQUIRED_MTF } = require('./signalEngine');
-const { notifySignal, notifyTradeClosed } = require('../notify/telegram');
+
 
 function toCandles(klines) {
   return klines.map((k) => ({
